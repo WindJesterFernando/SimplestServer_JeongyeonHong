@@ -15,6 +15,7 @@ public class NetworkedServer : MonoBehaviour
     int socketPort = 5491;
     List<int> m_ConnectionList = new List<int>();
     public Text m_ChatText = null;
+    int m_ObserverID = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -62,14 +63,21 @@ public class NetworkedServer : MonoBehaviour
 
                 ProcessRecievedMsg(msg, recConnectionID);
 
-                for (int i = 0; i < m_ConnectionList.Count; ++i)
+                if (msg == "Observer")
                 {
-                    if (m_ConnectionList[i] == recConnectionID)
-                        continue;
-
-                    SendMessageToClient(msg, m_ConnectionList[i]);
+                    m_ObserverID = recConnectionID;
                 }
 
+                else
+                {
+                    for (int i = 0; i < m_ConnectionList.Count; ++i)
+                    {
+                        if (m_ConnectionList[i] == recConnectionID)
+                            continue;
+
+                        SendMessageToClient(msg, m_ConnectionList[i]);
+                    }
+                }
                 break;
             case NetworkEventType.DisconnectEvent:
                 Debug.Log("Disconnection, " + recConnectionID);
