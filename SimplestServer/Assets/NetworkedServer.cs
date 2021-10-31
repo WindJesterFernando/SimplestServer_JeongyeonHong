@@ -13,6 +13,8 @@ public class NetworkedServer : MonoBehaviour
     int unreliableChannelID;
     int hostID;
     int socketPort = 5491;
+    List<int> m_ConnectionList = new List<int>();
+    public Text m_ChatText = null;
 
     // Start is called before the first frame update
     void Start()
@@ -46,13 +48,39 @@ public class NetworkedServer : MonoBehaviour
                 break;
             case NetworkEventType.ConnectEvent:
                 Debug.Log("Connection, " + recConnectionID);
+                m_ConnectionList.Add(recConnectionID);
+
+                if (m_ConnectionList.Count == 2)
+                {
+                    int Index = Random.Range(0, 2);
+
+                    SendMessageToClient("Owner", m_ConnectionList[Index]);
+                }
                 break;
             case NetworkEventType.DataEvent:
                 string msg = Encoding.Unicode.GetString(recBuffer, 0, dataSize);
+
                 ProcessRecievedMsg(msg, recConnectionID);
+
+                for (int i = 0; i < m_ConnectionList.Count; ++i)
+                {
+                    if (m_ConnectionList[i] == recConnectionID)
+                        continue;
+
+                    SendMessageToClient(msg, m_ConnectionList[i]);
+                }
+
                 break;
             case NetworkEventType.DisconnectEvent:
                 Debug.Log("Disconnection, " + recConnectionID);
+                for (int i = 0; i < m_ConnectionList.Count; ++i)
+                {
+                    if(m_ConnectionList[i] == recConnectionID)
+                    {
+                        m_ConnectionList.RemoveAt(i);
+                        break;
+                    }
+                }
                 break;
         }
 
@@ -67,7 +95,8 @@ public class NetworkedServer : MonoBehaviour
     
     private void ProcessRecievedMsg(string msg, int id)
     {
-        Debug.Log("msg recieved = " + msg + ".  connection id = " + id);
+        //Debug.Log("msg recieved = " + msg + ".  connection id = " + id);
+        m_ChatText.text += id + " : " + msg + "\n";
     }
 
 }
