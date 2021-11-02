@@ -17,6 +17,8 @@ public class NetworkedServer : MonoBehaviour
     public Text m_ChatText = null;
     int m_ObserverID = 0;
 
+    LinkedList<PlayerAccount> playerAccounts;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -26,7 +28,8 @@ public class NetworkedServer : MonoBehaviour
         unreliableChannelID = config.AddChannel(QosType.Unreliable);
         HostTopology topology = new HostTopology(config, maxConnections);
         hostID = NetworkTransport.AddHost(topology, socketPort, null);
-        
+
+        playerAccounts = new LinkedList<PlayerAccount>();
     }
 
     // Update is called once per frame
@@ -99,12 +102,77 @@ public class NetworkedServer : MonoBehaviour
         byte error = 0;
         byte[] buffer = Encoding.Unicode.GetBytes(msg);
         NetworkTransport.Send(hostID, id, reliableChannelID, buffer, msg.Length * sizeof(char), out error);
+
+        if (error != 0)
+            Debug.Log("DUDE, went wrong on send");
     }
     
     private void ProcessRecievedMsg(string msg, int id)
     {
         //Debug.Log("msg recieved = " + msg + ".  connection id = " + id);
         m_ChatText.text += id + " : " + msg + "\n";
+
+        string[] csv = msg.Split(',');
+        int signifier = int.Parse(csv[0]);
+
+        if(signifier == ClientToServerSignifiers.CreateAccount)
+        {
+            Debug.Log("Create Account");
+
+            string n = csv[1];
+            string p = csv[2];
+            bool nameIsInUse = false;
+
+            foreach(PlayerAccount pa in playerAccounts)
+            {
+                if (pa.name == n)
+                { 
+                    nameIsInUse = true;
+                    break;
+                }
+            }
+
+            if(nameIsInUse)
+            {
+                SendMessageToClient(ServerToClientSignifiers.AccountCreationFailed + "", id);
+            }
+            else
+            {
+                PlayerAccount newPlayerAccount = new PlayerAccount(n, p);
+
+                playerAccounts.AddLast(newPlayerAccount);
+                SendMessageToClient(ServerToClientSignifiers.AccountCreationComplete + "", id);
+            }
+        }
+        else if(signifier == ClientToServerSignifiers.Login)
+        {
+            Debug.Log("Login to Account");
+        }
+    }
+
+    public class PlayerAccount
+    {
+        public string name, password;
+
+        public PlayerAccount(string Name, string Password)
+        {
+            name = Name;
+            password = password;
+        }
+    }
+
+    static public class ClientToServerSignifiers
+    {
+        public const int CreateAccount = 1;
+        public const int Login = 2;
+    }
+
+    static public class ServerToClientSignifiers
+    {
+        public const int LoginComplete = 1;
+        public const int LoginFailed = 2;
+        public const int AccountCreationComplete = 3;
+        public const int AccountCreationFailed = 4;
     }
 
 }
