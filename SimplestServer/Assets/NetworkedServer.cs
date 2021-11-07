@@ -23,6 +23,9 @@ public class NetworkedServer : MonoBehaviour
 
     string playerAccountsFilePath;
 
+    int MatchCount = 0;
+    int ObserverIndex = -1;
+    int[] MatchID = new int[3];
     int playerWaitingForMatchWithID = -1;
 
     LinkedList<GameRoom> GameRooms;
@@ -39,6 +42,8 @@ public class NetworkedServer : MonoBehaviour
 
         playerAccountsFilePath = Application.dataPath + Path.DirectorySeparatorChar + "PlayerAccounts.txt";
         playerAccounts = new LinkedList<PlayerAccount>();
+
+        MatchCount = 0;
 
 
         LoadPlayerAccounts();
@@ -69,46 +74,46 @@ public class NetworkedServer : MonoBehaviour
                 break;
             case NetworkEventType.ConnectEvent:
                 Debug.Log("Connection, " + recConnectionID);
-                m_ConnectionList.Add(recConnectionID);
+                //m_ConnectionList.Add(recConnectionID);
 
-                if (m_ConnectionList.Count == 2)
-                {
-                    int Index = Random.Range(0, 2);
+                //if (m_ConnectionList.Count == 2)
+                //{
+                //    int Index = Random.Range(0, 2);
 
-                    SendMessageToClient("Owner", m_ConnectionList[Index]);
-                }
+                //    SendMessageToClient("Owner", m_ConnectionList[Index]);
+                //}
                 break;
             case NetworkEventType.DataEvent:
                 string msg = Encoding.Unicode.GetString(recBuffer, 0, dataSize);
 
                 ProcessRecievedMsg(msg, recConnectionID);
 
-                if (msg == "Observer")
-                {
-                    m_ObserverID = recConnectionID;
-                }
+                //if (msg == "Observer")
+                //{
+                //    m_ObserverID = recConnectionID;
+                //}
 
-                else
-                {
-                    for (int i = 0; i < m_ConnectionList.Count; ++i)
-                    {
-                        if (m_ConnectionList[i] == recConnectionID)
-                            continue;
+                //else
+                //{
+                //    for (int i = 0; i < m_ConnectionList.Count; ++i)
+                //    {
+                //        if (m_ConnectionList[i] == recConnectionID)
+                //            continue;
 
-                        SendMessageToClient(msg, m_ConnectionList[i]);
-                    }
-                }
+                //        SendMessageToClient(msg, m_ConnectionList[i]);
+                //    }
+                //}
                 break;
             case NetworkEventType.DisconnectEvent:
                 Debug.Log("Disconnection, " + recConnectionID);
-                for (int i = 0; i < m_ConnectionList.Count; ++i)
-                {
-                    if(m_ConnectionList[i] == recConnectionID)
-                    {
-                        m_ConnectionList.RemoveAt(i);
-                        break;
-                    }
-                }
+                //for (int i = 0; i < m_ConnectionList.Count; ++i)
+                //{
+                //    if(m_ConnectionList[i] == recConnectionID)
+                //    {
+                //        m_ConnectionList.RemoveAt(i);
+                //        break;
+                //    }
+                //}
                 break;
         }
 
@@ -127,7 +132,7 @@ public class NetworkedServer : MonoBehaviour
     private void ProcessRecievedMsg(string msg, int id)
     {
         //Debug.Log("msg recieved = " + msg + ".  connection id = " + id);
-        m_ChatText.text += id + " : " + msg + "\n";
+        //m_ChatText.text += id + " : " + msg + "\n";
 
         string[] csv = msg.Split(',');
         int signifier = int.Parse(csv[0]);
@@ -199,41 +204,89 @@ public class NetworkedServer : MonoBehaviour
                     SendMessageToClient(ServerToClientSignifiers.LoginFailed + "", id);
                 }
             }
-            else if (signifier == ClientToServerSignifiers.JoinQueueForGameRoom)
-            {
-                Debug.Log("We need to get this player into a waiting queue!");
+        }
 
-                if (playerWaitingForMatchWithID == -1)
+        else if (signifier == ClientToServerSignifiers.ObserverJoin)
+        {
+            Debug.Log("We need to get this player into a waiting queue!");
+
+            MatchID[MatchCount] = id;
+            ObserverIndex = MatchCount;
+            ++MatchCount;
+
+            if (MatchCount == 3)
+            {
+                int[] WaitID = new int[2];
+                int WaitIndex = 0;
+
+                for (int i = 0; i < 3; ++i)
                 {
-                    playerWaitingForMatchWithID = id;
+                    if (i != ObserverIndex)
+                    {
+                        WaitID[WaitIndex] = MatchID[i];
+                        ++WaitIndex;
+                    }
+                }
+
+                GameRoom gr = new GameRoom(WaitID[0], WaitID[1], MatchID[ObserverIndex]);
+                GameRooms.AddLast(gr);
+
+                SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.playerID2);
+                SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.playerID1);
+                SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.observer);
+
+                ObserverIndex = -1;
+                MatchCount = 0;
+            }
+        }
+
+        else if (signifier == ClientToServerSignifiers.JoinQueueForGameRoom)
+        {
+            Debug.Log("We need to get this player into a waiting queue!");
+
+            MatchID[MatchCount] = id;
+            ++MatchCount;
+
+            if (MatchCount == 3)
+            {
+                int[] WaitID = new int[2];
+                int WaitIndex = 0;
+
+                for(int i = 0; i < 3; ++i)
+                {
+                    if (i != ObserverIndex)
+                    {
+                        WaitID[WaitIndex] = MatchID[i];
+                        ++WaitIndex;
+                    }
+                }
+
+                GameRoom gr = new GameRoom(WaitID[0], WaitID[1], MatchID[ObserverIndex]);
+                GameRooms.AddLast(gr);
+
+                SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.playerID2);
+                SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.playerID1);
+                SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.observer);
+
+                ObserverIndex = -1;
+                MatchCount = 0;
+            }
+        }
+        else if (signifier == ClientToServerSignifiers.TicTacToeSomethingPlay)
+        {
+            GameRoom gr = GetGameRoomWithClientID(id);
+            if (gr != null)
+            {
+                if (gr.playerID1 == id)
+                {
+                    SendMessageToClient(ServerToClientSignifiers.Msg + ", " + csv[1], gr.playerID2);
                 }
                 else
                 {
-                    GameRoom gr = new GameRoom(playerWaitingForMatchWithID, id);
-                    GameRooms.AddLast(gr);
-
-                    SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.playerID2);
-                    SendMessageToClient(ServerToClientSignifiers.GameStart + "", gr.playerID1);
-
-                    playerWaitingForMatchWithID = -1;
+                    SendMessageToClient(ServerToClientSignifiers.Msg + ", " + csv[1], gr.playerID1);
                 }
             }
-            else if (signifier == ClientToServerSignifiers.TicTacToeSomethingPlay)
-            {
-                GameRoom gr = GetGameRoomWithClientID(id);
-                if (gr != null)
-                {
-                    if(gr.playerID1 == id)
-                    {
-                        SendMessageToClient(ServerToClientSignifiers.OpponentPlay + "", gr.playerID2);
-                    }
-                    else
-                    {
-                        SendMessageToClient(ServerToClientSignifiers.OpponentPlay + "", gr.playerID1);
-                    }
-                }
-                // we need to get the game room that the client ID is in
-            }
+            // we need to get the game room that the client ID is in
         }
     }
 
@@ -274,9 +327,9 @@ public class NetworkedServer : MonoBehaviour
                     PlayerAccount pa = new PlayerAccount(csv[1], csv[2]);
                     playerAccounts.AddLast(pa);
                 }
-
-                sr.Close();
             }
+
+            sr.Close();
         }
     }
 
@@ -299,17 +352,18 @@ public class PlayerAccount
     public PlayerAccount(string Name, string Password)
     {
         name = Name;
-        password = password;
+        password = Password;
     }
 }
 
 public class GameRoom
 {
-    public int  playerID1, playerID2;
-    public GameRoom(int PlayerID1, int PlayerID2)
+    public int  playerID1, playerID2, observer;
+    public GameRoom(int PlayerID1, int PlayerID2, int Observer)
     {
         playerID1 = PlayerID1;
         playerID2 = PlayerID2;
+        observer = Observer;
     }
 
 
@@ -321,6 +375,7 @@ static public class ClientToServerSignifiers
     public const int Login = 2;
     public const int JoinQueueForGameRoom = 3;
     public const int TicTacToeSomethingPlay = 4;
+    public const int ObserverJoin = 5;
 }
 
 static public class ServerToClientSignifiers
@@ -331,4 +386,6 @@ static public class ServerToClientSignifiers
     public const int AccountCreationFailed = 4;
     public const int OpponentPlay = 5;
     public const int GameStart = 6;
+    public const int Msg = 7;
+    public const int Owner = 8;
 }
