@@ -253,6 +253,7 @@ public class NetworkedServer : MonoBehaviour
             {
                 if (gr.playerID1 == id)
                 {
+                    Debug.Log("ID 1");
                     SendMessageToClient(ServerToClientSignifiers.ChatMsg + ", " + csv[1], gr.playerID2);
 
                     if (gr.observer != -1)
@@ -260,6 +261,7 @@ public class NetworkedServer : MonoBehaviour
                 }
                 else
                 {
+                    Debug.Log("ID 2");
                     SendMessageToClient(ServerToClientSignifiers.ChatMsg + ", " + csv[1], gr.playerID1);
 
                     if (gr.observer != -1)
@@ -270,98 +272,101 @@ public class NetworkedServer : MonoBehaviour
 
         else if (signifier == ClientToServerSignifiers.TicTacToeSomethingPlay)
         {
-            GameRoom gr = GetGameRoomWithClientID(id);
+            GameRoom gr = GetGameRoomTicTacToeWithClientID(id);
+            Debug.Log("TicPlay");
             if (gr != null)
             {
                 int Number = int.Parse(csv[1]);
 
                 if (gr.playerID1 == id)
                 {
+                    Debug.Log("ID 1");
                     TicTacToeCheck[Number] = 1;
-                    SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + csv[1], gr.playerID2);
+                    SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + Number.ToString(), gr.playerID2);
 
-                    if (gr.observer != -1)
-                        SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + csv[1], gr.observer);
+                    //if (gr.observer != -1)
+                    //    SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + Number.ToString(), gr.observer);
                 }
                 else
                 {
+                    Debug.Log("ID 2");
                     TicTacToeCheck[Number] = 2;
-                    SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + csv[1], gr.playerID1);
+                    SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + Number.ToString(), gr.playerID1);
 
-                    if (gr.observer != -1)
-                        SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + csv[1], gr.observer);
+                    //if (gr.observer != -1)
+                    //    SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + Number.ToString(), gr.observer);
                 }
 
-                for (int i = 0; i < 3; ++i)
-                {
-                    int Player1XCount = 0;
-                    int Player2XCount = 0;
+                //for (int i = 0; i < 3; ++i)
+                //{
+                //    int Player1XCount = 0;
+                //    int Player2XCount = 0;
 
-                    int Player1YCount = 0;
-                    int Player2YCount = 0;
-                    for (int j = 0; j < 3; ++j)
-                    {
-                        if (TicTacToeCheck[i * 3 + j] == 1)
-                            ++Player1XCount;
+                //    int Player1YCount = 0;
+                //    int Player2YCount = 0;
+                //    for (int j = 0; j < 3; ++j)
+                //    {
+                //        if (TicTacToeCheck[i * 3 + j] == 1)
+                //            ++Player1XCount;
 
-                        else if (TicTacToeCheck[i * 3 + j] == 2)
-                            ++Player2XCount;
+                //        else if (TicTacToeCheck[i * 3 + j] == 2)
+                //            ++Player2XCount;
 
-                        if (TicTacToeCheck[j * 3 + i] == 1)
-                            ++Player1YCount;
+                //        if (TicTacToeCheck[j * 3 + i] == 1)
+                //            ++Player1YCount;
 
-                        else if (TicTacToeCheck[j * 3 + i] == 2)
-                            ++Player2YCount;
-                    }
+                //        else if (TicTacToeCheck[j * 3 + i] == 2)
+                //            ++Player2YCount;
+                //    }
 
-                    if (Player1XCount == 3)
-                    {
-                        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID1);
-                        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "1", gr.observer);
-                    }
+                //    if (Player1XCount == 3)
+                //    {
+                //        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID1);
+                //        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "1", gr.observer);
+                //    }
 
-                    else if (Player1YCount == 3)
-                    {
-                        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID1);
-                        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "1", gr.observer);
-                    }
+                //    else if (Player1YCount == 3)
+                //    {
+                //        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID1);
+                //        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "1", gr.observer);
+                //    }
 
-                    else if (Player2XCount == 3)
-                    {
-                        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID2);
-                        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "2", gr.observer);
-                    }
+                //    else if (Player2XCount == 3)
+                //    {
+                //        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID2);
+                //        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "2", gr.observer);
+                //    }
 
-                    else if (Player2YCount == 3)
-                    {
-                        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID2);
-                        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "2", gr.observer);
-                    }
-                }
+                //    else if (Player2YCount == 3)
+                //    {
+                //        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID2);
+                //        SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "2", gr.observer);
+                //    }
+                //}
 
-                if (TicTacToeCheck[0] == 1 && TicTacToeCheck[4] == 1 && TicTacToeCheck[8] == 1)
-                {
-                    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID1);
-                    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "1", gr.observer);
-                }
+                //if (TicTacToeCheck[0] == 1 && TicTacToeCheck[4] == 1 && TicTacToeCheck[8] == 1)
+                //{
+                //    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID1);
+                //    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "1", gr.observer);
+                //}
 
-                else if (TicTacToeCheck[0] == 2 && TicTacToeCheck[4] == 2 && TicTacToeCheck[8] == 2)
-                {
-                    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID1);
-                    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "1", gr.observer);
-                }
+                //else if (TicTacToeCheck[0] == 2 && TicTacToeCheck[4] == 2 && TicTacToeCheck[8] == 2)
+                //{
+                //    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID1);
+                //    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "1", gr.observer);
+                //}
 
-                else if (TicTacToeCheck[2] == 1 && TicTacToeCheck[4] == 1 && TicTacToeCheck[6] == 1)
-                {
-                    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID2);
-                    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "2", gr.observer);
-                }
+                //else if (TicTacToeCheck[2] == 1 && TicTacToeCheck[4] == 1 && TicTacToeCheck[6] == 1)
+                //{
+                //    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID2);
+                //    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "2", gr.observer);
+                //}
 
-                else if (TicTacToeCheck[2] == 2 && TicTacToeCheck[4] == 2 && TicTacToeCheck[6] == 2)
-                {
-                    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID2);
-                    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "2", gr.observer);
-                }
+                //else if (TicTacToeCheck[2] == 2 && TicTacToeCheck[4] == 2 && TicTacToeCheck[6] == 2)
+                //{
+                //    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID2);
+                //    SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "2", gr.observer);
+                //}
             }
         }
 
@@ -401,29 +406,35 @@ public class NetworkedServer : MonoBehaviour
                         SendMessageToClient(ServerToClientSignifiers.TicTacToeLoginComplete + "", id);
                         msgHasBeenSentToClient = true;
 
+                        Debug.Log("Login Complete");
+
                         TicTacToeMatchID[TicTacToeMatchCount] = id;
                         ++TicTacToeMatchCount;
 
                         if (TicTacToeMatchCount == 2)
                         {
-                            GameRoom gr = GetGameRoomTicTacToeWithClientID(id);
+                            //GameRoom gr = GetGameRoomTicTacToeWithClientID(id);
 
-                            if (gr != null)
-                            {
-                                gr.playerID1 = TicTacToeMatchID[0];
-                                gr.playerID2 = TicTacToeMatchID[1];
-                            }
+                            //if (gr != null)
+                            //{
+                            //    gr.playerID1 = TicTacToeMatchID[0];
+                            //    gr.playerID2 = TicTacToeMatchID[1];
+                            //}
 
-                            else
-                            {
-                                gr = new GameRoom(TicTacToeMatchID[0], TicTacToeMatchID[1]);
-                                GameRoomsTicTacToe.AddLast(gr);
-                            }
+                            //else
+                            //{
+                            //    gr = new GameRoom(TicTacToeMatchID[0], TicTacToeMatchID[1]);
+                            //    GameRoomsTicTacToe.AddLast(gr);
+                            //}
+
+                            GameRoom gr = new GameRoom(TicTacToeMatchID[0], TicTacToeMatchID[1]);
+                            GameRoomsTicTacToe.AddLast(gr);
 
                             SendMessageToClient(ServerToClientSignifiers.TicTacToeGameStart + "", gr.playerID2);
                             SendMessageToClient(ServerToClientSignifiers.TicTacToeOwner + "", gr.playerID1);
 
                             TicTacToeMatchCount = 0;
+                            break;
                         }
                     }
                     else
@@ -450,15 +461,15 @@ public class NetworkedServer : MonoBehaviour
             if (gr != null)
             {
                 if (gr.playerID1 == id)
-                    gr.playerID1 = 0;
+                    gr.playerID1 = -1;
 
                 else if (gr.observer == id)
-                    gr.observer = 0;
+                    gr.observer = -1;
 
                 else
-                    gr.playerID2 = 0;
+                    gr.playerID2 = -1;
 
-                if (gr.playerID1 == 0 && gr.playerID2 == 0 && gr.observer == 0)
+                if (gr.playerID1 == -1 && gr.playerID2 == -1 && gr.observer == -1)
                     GameRoomsTicTacToe.Remove(gr);
             }
         }
@@ -519,7 +530,7 @@ public class NetworkedServer : MonoBehaviour
 
             if (gr != null)
             {
-                gr.observer = 0;
+                gr.observer = -1;
             }
         }
     }
@@ -602,7 +613,7 @@ public class PlayerAccount
 
 public class GameRoom
 {
-    public int  playerID1, playerID2, observer = -1;
+    public int  playerID1 = -1, playerID2 = -1, observer = -1;
 
     public GameRoom()
     {
