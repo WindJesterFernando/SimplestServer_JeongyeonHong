@@ -249,7 +249,7 @@ public class NetworkedServer : MonoBehaviour
                     SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + Number.ToString(), gr.playerID2);
 
                     if (gr.observer != -1)
-                        SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + Number.ToString(), gr.observer);
+                        SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + Number.ToString() + ", 1", gr.observer);
                 }
                 else
                 {
@@ -258,7 +258,7 @@ public class NetworkedServer : MonoBehaviour
                     SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + Number.ToString(), gr.playerID1);
 
                     if (gr.observer != -1)
-                        SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + Number.ToString(), gr.observer);
+                        SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + Number.ToString() + ", 2", gr.observer);
                 }
 
                 for (int i = 0; i < 3; ++i)
@@ -393,22 +393,19 @@ public class NetworkedServer : MonoBehaviour
 
                         if (TicTacToeMatchCount == 2)
                         {
-                            //GameRoom gr = GetGameRoomTicTacToeWithClientID(id);
+                            GameRoom gr = GetGameRoomTicTacToeWithClientID(id);
 
-                            //if (gr != null)
-                            //{
-                            //    gr.playerID1 = TicTacToeMatchID[0];
-                            //    gr.playerID2 = TicTacToeMatchID[1];
-                            //}
+                            if (gr != null)
+                            {
+                                gr.playerID1 = TicTacToeMatchID[0];
+                                gr.playerID2 = TicTacToeMatchID[1];
+                            }
 
-                            //else
-                            //{
-                            //    gr = new GameRoom(TicTacToeMatchID[0], TicTacToeMatchID[1]);
-                            //    GameRoomsTicTacToe.AddLast(gr);
-                            //}
-
-                            GameRoom gr = new GameRoom(TicTacToeMatchID[0], TicTacToeMatchID[1]);
-                            GameRoomsTicTacToe.AddLast(gr);
+                            else
+                            {
+                                gr = new GameRoom(TicTacToeMatchID[0], TicTacToeMatchID[1]);
+                                GameRoomsTicTacToe.AddLast(gr);
+                            }
 
                             Debug.Log("ID1 : " + gr.playerID1);
                             Debug.Log("ID2 : " + gr.playerID2);
@@ -473,7 +470,7 @@ public class NetworkedServer : MonoBehaviour
 
                     if (pa.password == p)
                     {
-                        GameRoom gr = GetGameRoomTicTacToeWithClientID(id);
+                        GameRoom gr = GetGameRoomTicTacToeWithOutObserver();
 
                         if (gr != null)
                         {
@@ -486,13 +483,13 @@ public class NetworkedServer : MonoBehaviour
                             GameRoomsTicTacToe.AddLast(gr);
                             gr.observer = id;
                         }
-
-                        SendMessageToClient(ServerToClientSignifiers.TicTacToeLoginComplete + "", id);
+                        
+                        SendMessageToClient(ServerToClientSignifiers.TicTacToeObserverLoginComplete + "", id);
                         msgHasBeenSentToClient = true;
                     }
                     else
                     {
-                        SendMessageToClient(ServerToClientSignifiers.TicTacToeLoginFailed + "", id);
+                        SendMessageToClient(ServerToClientSignifiers.TicTacToeObserverLoginFailed + "", id);
                         msgHasBeenSentToClient = true;
                     }
                 }
@@ -502,7 +499,7 @@ public class NetworkedServer : MonoBehaviour
             {
                 if (!msgHasBeenSentToClient)
                 {
-                    SendMessageToClient(ServerToClientSignifiers.TicTacToeLoginFailed + "", id);
+                    SendMessageToClient(ServerToClientSignifiers.TicTacToeObserverLoginFailed + "", id);
                 }
             }
         }
@@ -580,6 +577,15 @@ public class NetworkedServer : MonoBehaviour
         }
         return null;
     }
+    private GameRoom GetGameRoomTicTacToeWithOutObserver()
+    {
+        foreach (GameRoom gr in GameRoomsTicTacToe)
+        {
+            if (gr.observer == -1)
+                return gr;
+        }
+        return null;
+    }
 
 }
 
@@ -643,4 +649,6 @@ static public class ServerToClientSignifiers
     public const int TicTacToeWin = 10;
     public const int TicTacToeLoginComplete = 11;
     public const int TicTacToeLoginFailed = 12;
+    public const int TicTacToeObserverLoginComplete = 13;
+    public const int TicTacToeObserverLoginFailed = 14;
 }
