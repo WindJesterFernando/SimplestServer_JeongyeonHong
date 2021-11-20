@@ -286,6 +286,7 @@ public class NetworkedServer : MonoBehaviour
                     if (Player1XCount == 3)
                     {
                         SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID1);
+                        SendMessageToClient(ServerToClientSignifiers.TicTacToeLose + "", gr.playerID2);
 
                         if (gr.observer != -1)
                             SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "1", gr.observer);
@@ -294,6 +295,7 @@ public class NetworkedServer : MonoBehaviour
                     else if (Player1YCount == 3)
                     {
                         SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID1);
+                        SendMessageToClient(ServerToClientSignifiers.TicTacToeLose + "", gr.playerID2);
 
                         if (gr.observer != -1)
                             SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "1", gr.observer);
@@ -302,6 +304,7 @@ public class NetworkedServer : MonoBehaviour
                     else if (Player2XCount == 3)
                     {
                         SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID2);
+                        SendMessageToClient(ServerToClientSignifiers.TicTacToeLose + "", gr.playerID1);
 
                         if (gr.observer != -1)
                             SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "2", gr.observer);
@@ -310,6 +313,7 @@ public class NetworkedServer : MonoBehaviour
                     else if (Player2YCount == 3)
                     {
                         SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID2);
+                        SendMessageToClient(ServerToClientSignifiers.TicTacToeLose + "", gr.playerID1);
 
                         if (gr.observer != -1)
                             SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "2", gr.observer);
@@ -319,6 +323,7 @@ public class NetworkedServer : MonoBehaviour
                 if (TicTacToeCheck[0] == 1 && TicTacToeCheck[4] == 1 && TicTacToeCheck[8] == 1)
                 {
                     SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID1);
+                    SendMessageToClient(ServerToClientSignifiers.TicTacToeLose + "", gr.playerID2);
 
                     if (gr.observer != -1)
                         SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "1", gr.observer);
@@ -327,6 +332,7 @@ public class NetworkedServer : MonoBehaviour
                 else if (TicTacToeCheck[0] == 2 && TicTacToeCheck[4] == 2 && TicTacToeCheck[8] == 2)
                 {
                     SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID1);
+                    SendMessageToClient(ServerToClientSignifiers.TicTacToeLose + "", gr.playerID2);
 
                     if (gr.observer != -1)
                         SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "1", gr.observer);
@@ -335,6 +341,7 @@ public class NetworkedServer : MonoBehaviour
                 else if (TicTacToeCheck[2] == 1 && TicTacToeCheck[4] == 1 && TicTacToeCheck[6] == 1)
                 {
                     SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID2);
+                    SendMessageToClient(ServerToClientSignifiers.TicTacToeLose + "", gr.playerID1);
 
                     if (gr.observer != -1)
                         SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "2", gr.observer);
@@ -343,6 +350,7 @@ public class NetworkedServer : MonoBehaviour
                 else if (TicTacToeCheck[2] == 2 && TicTacToeCheck[4] == 2 && TicTacToeCheck[6] == 2)
                 {
                     SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "", gr.playerID2);
+                    SendMessageToClient(ServerToClientSignifiers.TicTacToeLose + "", gr.playerID1);
 
                     if (gr.observer != -1)
                         SendMessageToClient(ServerToClientSignifiers.TicTacToeWin + "2", gr.observer);
@@ -483,7 +491,7 @@ public class NetworkedServer : MonoBehaviour
                             GameRoomsTicTacToe.AddLast(gr);
                             gr.observer = id;
                         }
-                        
+
                         SendMessageToClient(ServerToClientSignifiers.TicTacToeObserverLoginComplete + "", id);
                         msgHasBeenSentToClient = true;
                     }
@@ -512,6 +520,10 @@ public class NetworkedServer : MonoBehaviour
             {
                 gr.observer = -1;
             }
+        }
+
+        else if (signifier == ClientToServerSignifiers.Replay)
+        { 
         }
     }
 
@@ -633,6 +645,7 @@ static public class ClientToServerSignifiers
     public const int TicTacToeOut = 8;
     public const int TicTacToeObserverIn = 9;
     public const int TicTacToeObserverOut = 10;
+    public const int Replay = 11;
 }
 
 static public class ServerToClientSignifiers
@@ -651,4 +664,6 @@ static public class ServerToClientSignifiers
     public const int TicTacToeLoginFailed = 12;
     public const int TicTacToeObserverLoginComplete = 13;
     public const int TicTacToeObserverLoginFailed = 14;
+    public const int TicTacToeLose = 15;
+    public const int Replay = 16;
 }
