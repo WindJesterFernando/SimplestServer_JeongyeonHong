@@ -32,6 +32,15 @@ public class NetworkedServer : MonoBehaviour
     int[] TicTacToeMatchID = new int[2];
     int[] TicTacToeCheck = new int[9];
 
+    int[] ReplayNumber = new int[9];
+    string[] ReplayText = new string[9];
+    int ReplayCount = 0;
+    int[] ReplayID = new int[3];
+    int[] ReplayIndex = new int[3];
+    bool[] ReplayEnable = new bool[3];
+    float[] ReplayTime = new float[3];
+    int ReplayPlayerCount = 0;
+
     LinkedList<GameRoom> GameRooms;
     LinkedList<GameRoom> GameRoomsTicTacToe;
 
@@ -47,6 +56,14 @@ public class NetworkedServer : MonoBehaviour
 
         playerAccountsFilePath = Application.dataPath + Path.DirectorySeparatorChar + "PlayerAccounts.txt";
         playerAccounts = new LinkedList<PlayerAccount>();
+
+        for (int i = 0; i < 3; ++i)
+        {
+            ReplayID[i] = -1;
+            ReplayIndex[i] = 0;
+            ReplayEnable[i] = false;
+            ReplayTime[i] = 0.0f;
+        }
 
         MatchCount = 0;
 
@@ -94,7 +111,6 @@ public class NetworkedServer : MonoBehaviour
                 Debug.Log("Disconnection, " + recConnectionID);
                 break;
         }
-
     }
   
     public void SendMessageToClient(string msg, int id)
@@ -242,10 +258,13 @@ public class NetworkedServer : MonoBehaviour
             {
                 int Number = int.Parse(csv[1]);
 
+                ReplayNumber[ReplayCount] = Number;
+
                 if (gr.playerID1 == id)
                 {
                     Debug.Log("ID 1");
                     TicTacToeCheck[Number] = 1;
+                    ReplayText[ReplayCount] = "O";
                     SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + Number.ToString(), gr.playerID2);
 
                     if (gr.observer != -1)
@@ -255,11 +274,14 @@ public class NetworkedServer : MonoBehaviour
                 {
                     Debug.Log("ID 2");
                     TicTacToeCheck[Number] = 2;
+                    ReplayText[ReplayCount] = "X";
                     SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + Number.ToString(), gr.playerID1);
 
                     if (gr.observer != -1)
                         SendMessageToClient(ServerToClientSignifiers.TicTacToePlay + ", " + Number.ToString() + ", 2", gr.observer);
                 }
+
+                ++ReplayCount;
 
                 for (int i = 0; i < 3; ++i)
                 {
@@ -523,7 +545,27 @@ public class NetworkedServer : MonoBehaviour
         }
 
         else if (signifier == ClientToServerSignifiers.Replay)
-        { 
+        {
+            bool Acc = false;
+            for (int i = 0; i < ReplayPlayerCount; ++i)
+            {
+                if(ReplayID[i] == id)
+                {
+                    Acc = true;
+                    break;
+                }    
+            }
+            if (!Acc)
+            {
+                ReplayID[ReplayPlayerCount] = id;
+                ReplayEnable[ReplayPlayerCount] = true;
+                ReplayIndex[ReplayPlayerCount] = 0;
+                ReplayTime[ReplayPlayerCount] = 0.0f;
+
+                StartCoroutine(ReplayUpdate(ReplayPlayerCount));
+
+                ++ReplayPlayerCount;
+            }
         }
     }
 
@@ -599,6 +641,42 @@ public class NetworkedServer : MonoBehaviour
         return null;
     }
 
+    private IEnumerator ReplayUpdate(int Index)
+    {
+        if (ReplayEnable[Index])
+        {
+            ReplayTime[Index] += Time.deltaTime;
+
+            if (ReplayTime[Index] >= 1.0f)
+            {
+                ReplayTime[Index] -= 1.0f;
+                ++ReplayIndex[Index];
+
+                if (ReplayIndex[Index] == ReplayCount)
+                {
+                    SendMessageToClient(ServerToClientSignifiers.ReplayEnd + ReplayNumber[ReplayIndex[Index] - 1].ToString() + ReplayText[ReplayIndex[Index] - 1], ReplayID[Index]);
+                    ReplayEnable[Index] = false;
+                    ReplayTime[Index] = 0.0f;
+                    ReplayIndex[Index] = 0;
+                    ReplayID[Index] = -1;
+                    yield break;
+                }
+
+                else
+                {
+                    SendMessageToClient(ServerToClientSignifiers.Replay + ReplayNumber[ReplayIndex[Index] - 1].ToString() + ReplayText[ReplayIndex[Index] - 1], ReplayID[Index]);
+                    yield return null;
+                }
+            }
+
+            else
+                yield return null;
+        }
+
+        else
+            yield return null;
+    }
+
 }
 
 public class PlayerAccount
@@ -666,4 +744,5 @@ static public class ServerToClientSignifiers
     public const int TicTacToeObserverLoginFailed = 14;
     public const int TicTacToeLose = 15;
     public const int Replay = 16;
+    public const int ReplayEnd = 17;
 }
