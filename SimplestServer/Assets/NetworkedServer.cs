@@ -643,38 +643,26 @@ public class NetworkedServer : MonoBehaviour
 
     private IEnumerator ReplayUpdate(int Index)
     {
-        if (ReplayEnable[Index])
+        for (int i = 0; i < ReplayCount; ++i)
         {
-            ReplayTime[Index] += Time.deltaTime;
+            ++ReplayIndex[Index];
 
-            if (ReplayTime[Index] >= 1.0f)
+            if (ReplayIndex[Index] == ReplayCount)
             {
-                ReplayTime[Index] -= 1.0f;
-                ++ReplayIndex[Index];
-
-                if (ReplayIndex[Index] == ReplayCount)
-                {
-                    SendMessageToClient(ServerToClientSignifiers.ReplayEnd + ReplayNumber[ReplayIndex[Index] - 1].ToString() + ReplayText[ReplayIndex[Index] - 1], ReplayID[Index]);
-                    ReplayEnable[Index] = false;
-                    ReplayTime[Index] = 0.0f;
-                    ReplayIndex[Index] = 0;
-                    ReplayID[Index] = -1;
-                    yield break;
-                }
-
-                else
-                {
-                    SendMessageToClient(ServerToClientSignifiers.Replay + ReplayNumber[ReplayIndex[Index] - 1].ToString() + ReplayText[ReplayIndex[Index] - 1], ReplayID[Index]);
-                    yield return null;
-                }
+                SendMessageToClient(ServerToClientSignifiers.ReplayEnd + ", " + ReplayNumber[ReplayIndex[Index] - 1].ToString() + ", " + ReplayText[ReplayIndex[Index] - 1], ReplayID[Index]);
+                ReplayEnable[Index] = false;
+                ReplayTime[Index] = 0.0f;
+                ReplayIndex[Index] = 0;
+                ReplayID[Index] = -1;
+                yield break;
             }
 
             else
-                yield return null;
+            {
+                SendMessageToClient(ServerToClientSignifiers.Replay + ", " + ReplayNumber[ReplayIndex[Index] - 1].ToString() + ", " + ReplayText[ReplayIndex[Index] - 1], ReplayID[Index]);
+                yield return new WaitForSeconds(1.0f);
+            }
         }
-
-        else
-            yield return null;
     }
 
 }
