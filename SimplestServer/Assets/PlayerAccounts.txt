@@ -1,5 +1,6 @@
-1, dsad, ghfg
-1, hjhgj, uyuk
-1, sdsafyj, yrt
-1, arg, gra
-1, qwe, ewq
+1,dsad,ghfg
+1,hjhgj,uyuk
+1,sdsafyj,yrt
+1,arg,gra
+1,qwe,ewq
+1,asd,asd
